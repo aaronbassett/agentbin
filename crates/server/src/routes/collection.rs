@@ -26,7 +26,9 @@ const CSP: &str = "default-src 'self' 'unsafe-inline'; script-src 'self'; \
 type HtmlResponse = Result<Response<Body>, (StatusCode, Json<Value>)>;
 
 fn is_not_found(e: &CoreError) -> bool {
-    matches!(e, CoreError::IoError(io_err) if io_err.kind() == std::io::ErrorKind::NotFound)
+    matches!(e,
+        CoreError::IoError(io_err) if io_err.kind() == std::io::ErrorKind::NotFound
+    ) || matches!(e, CoreError::ValidationError(_))
 }
 
 fn build_html_response(html: String) -> HtmlResponse {

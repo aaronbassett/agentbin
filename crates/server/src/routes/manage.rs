@@ -13,7 +13,9 @@ use agentbin_core::CoreError;
 use crate::{middleware::auth::AuthenticatedUser, routes::upload::error_response, state::AppState};
 
 fn is_io_not_found(e: &CoreError) -> bool {
-    matches!(e, CoreError::IoError(io_err) if io_err.kind() == std::io::ErrorKind::NotFound)
+    matches!(e,
+        CoreError::IoError(io_err) if io_err.kind() == std::io::ErrorKind::NotFound
+    ) || matches!(e, CoreError::ValidationError(_))
 }
 
 fn is_storage_not_found(e: &CoreError) -> bool {
