@@ -201,12 +201,15 @@ impl FileStorage {
             &serde_json::to_vec_pretty(&version_meta)?,
         )?;
 
+        let slug = crate::slug::slugify_filename(filename);
+
         let upload_record = UploadRecord {
             uid: uid.clone(),
             owner: owner.to_string(),
             collection: collection.map(str::to_string),
             latest_version: 1,
             created_at: now,
+            slug,
         };
         self.atomic_write(
             &self.upload_dir(&uid).join("upload.json"),

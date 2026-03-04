@@ -9,7 +9,7 @@ use axum::{
 };
 use serde_json::{json, Value};
 
-use agentbin_core::{CoreError, FileType};
+use agentbin_core::{extract_uid, uid_with_slug, CoreError, FileType};
 
 use crate::{
     badge::{generate_badge_html, inject_badge_into_html},
@@ -120,12 +120,14 @@ async fn render_view(state: &AppState, uid: &str, requested_version: Option<u32>
     })?;
 
     let file_type = FileType::from_filename(&version_meta.filename);
-    let badge_html = generate_badge_html(&version_meta, &state.base_url, uid);
+    let slug_ref = record.slug.as_deref();
+    let badge_html = generate_badge_html(&version_meta, &state.base_url, uid, slug_ref);
 
     // Show a version banner when viewing a non-latest specific version.
     let version_banner_html = requested_version.and_then(|req_v| {
         if req_v != record.latest_version {
-            let latest_url = format!("{}/{}", state.base_url, uid);
+            let slugged = uid_with_slug(uid, slug_ref);
+            let latest_url = format!("{}/{}", state.base_url, slugged);
             Some(format!(
                 r#"<div class="version-banner">Viewing version {req_v}. \
                    <a href="{latest_url}">View latest (v{})</a>.</div>"#,
@@ -185,7 +187,8 @@ async fn render_view(state: &AppState, uid: &str, requested_version: Option<u32>
 
 /// `GET /{uid}` — View the latest version of an upload.
 pub async fn view_latest(State(state): State<AppState>, Path(uid): Path<String>) -> ViewResponse {
-    render_view(&state, &uid, None).await
+    let uid = extract_uid(&uid);
+    render_view(&state, uid, None).await
 }
 
 /// `GET /{uid}/v{version}` — View a specific version of an upload.
@@ -193,5 +196,6 @@ pub async fn view_version(
     State(state): State<AppState>,
     Path((uid, version)): Path<(String, u32)>,
 ) -> ViewResponse {
-    render_view(&state, &uid, Some(version)).await
+    let uid = extract_uid(&uid);
+    render_view(&state, uid, Some(version)).await
 }

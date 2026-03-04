@@ -8,7 +8,7 @@ use axum::{
 };
 use serde_json::{json, Value};
 
-use agentbin_core::CoreError;
+use agentbin_core::{extract_uid, uid_with_slug, CoreError};
 
 use crate::{middleware::auth::AuthenticatedUser, routes::upload::error_response, state::AppState};
 
@@ -50,12 +50,13 @@ pub async fn list_uploads(
         let versions: Vec<Value> = version_metas
             .iter()
             .map(|vm| {
+                let slugged = uid_with_slug(&record.uid, record.slug.as_deref());
                 json!({
                     "version": vm.version,
                     "filename": vm.filename,
                     "size_bytes": vm.size_bytes,
                     "uploaded_at": vm.uploaded_at,
-                    "url": format!("{}/{}/v{}", state.base_url, record.uid, vm.version),
+                    "url": format!("{}/{}/v{}", state.base_url, slugged, vm.version),
                     "expires_at": vm.expires_at,
                 })
             })
@@ -81,8 +82,9 @@ pub async fn delete_version(
     Extension(user): Extension<AuthenticatedUser>,
     Path((uid, version)): Path<(String, u32)>,
 ) -> Result<Json<Value>, (StatusCode, Json<Value>)> {
+    let uid = extract_uid(&uid);
     // Verify the upload exists and load owner info.
-    let record = state.storage.get_upload_record(&uid).map_err(|e| {
+    let record = state.storage.get_upload_record(uid).map_err(|e| {
         if is_io_not_found(&e) {
             error_response(StatusCode::NOT_FOUND, "not_found", "Upload not found")
         } else {
@@ -104,7 +106,7 @@ pub async fn delete_version(
         ));
     }
 
-    state.storage.delete_version(&uid, version).map_err(|e| {
+    state.storage.delete_version(uid, version).map_err(|e| {
         if is_storage_not_found(&e) || is_io_not_found(&e) {
             error_response(StatusCode::NOT_FOUND, "not_found", "Version not found")
         } else {

@@ -9,7 +9,7 @@ use axum::{
 use chrono::Utc;
 use serde_json::{json, Value};
 
-use agentbin_core::{CoreError, Metadata};
+use agentbin_core::{extract_uid, uid_with_slug, CoreError, Metadata};
 
 use crate::{middleware::auth::AuthenticatedUser, state::AppState};
 
@@ -165,8 +165,9 @@ pub async fn create_upload(
             )
         })?;
 
-    let url = format!("{}/{}", state.base_url, record.uid);
-    let raw_url = format!("{}/{}/raw", state.base_url, record.uid);
+    let slugged = uid_with_slug(&record.uid, record.slug.as_deref());
+    let url = format!("{}/{}", state.base_url, slugged);
+    let raw_url = format!("{}/{}/raw", state.base_url, slugged);
 
     Ok((
         StatusCode::CREATED,
@@ -195,6 +196,8 @@ pub async fn upload_version(
     Path(uid): Path<String>,
     mut multipart: Multipart,
 ) -> Result<(StatusCode, Json<Value>), (StatusCode, Json<Value>)> {
+    let uid = extract_uid(&uid);
+
     let mut file_data: Option<(String, Vec<u8>)> = None;
     let mut metadata_str: Option<String> = None;
 
@@ -291,7 +294,7 @@ pub async fn upload_version(
     let version_meta = state
         .storage
         .store_version(
-            &uid,
+            uid,
             &user.username,
             &filename,
             &content,
@@ -318,8 +321,17 @@ pub async fn upload_version(
         })?;
 
     let version = version_meta.version;
-    let url = format!("{}/{}/v{}", state.base_url, uid, version);
-    let raw_url = format!("{}/{}/v{}/raw", state.base_url, uid, version);
+    let record = state.storage.get_upload_record(uid).map_err(|e| {
+        tracing::error!(uid = %uid, error = %e, "Storage error reading upload record for slug");
+        error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "storage_error",
+            "Failed to read upload record",
+        )
+    })?;
+    let slugged = uid_with_slug(uid, record.slug.as_deref());
+    let url = format!("{}/{}/v{}", state.base_url, slugged, version);
+    let raw_url = format!("{}/{}/v{}/raw", state.base_url, slugged, version);
 
     Ok((
         StatusCode::CREATED,
