@@ -1,3 +1,5 @@
+pub mod keygen;
+
 use crate::{config::CliConfig, output::OutputFormat};
 use clap::Subcommand;
 
@@ -96,8 +98,8 @@ impl Commands {
             Commands::Delete { .. } => {
                 println!("not yet implemented: delete");
             }
-            Commands::Keygen { .. } => {
-                println!("not yet implemented: keygen");
+            Commands::Keygen { force } => {
+                keygen::execute(*force, _format).await?;
             }
             Commands::Admin { action } => match action {
                 AdminAction::Add { .. } => {
