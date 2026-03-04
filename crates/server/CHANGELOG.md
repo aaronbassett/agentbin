@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 2026-03-04
+
+### Miscellaneous
+
+- Release v0.1.0
+
+
+
 ## [0.1.0] - 2026-03-04
 
 ### Features
