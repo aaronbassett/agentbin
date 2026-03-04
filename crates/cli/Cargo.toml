@@ -1,6 +1,6 @@
 [package]
 name = "agentbin"
-version = "0.1.0"
+version = "0.1.1"
 description = "CLI for publishing rendered documents at public URLs"
 edition.workspace = true
 license.workspace = true
