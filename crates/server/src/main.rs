@@ -1,7 +1,9 @@
 #![deny(unsafe_code)]
 
+mod badge;
 mod config;
 mod middleware;
+mod render;
 mod routes;
 mod state;
 mod templates;
