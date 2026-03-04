@@ -1,4 +1,5 @@
 pub mod keygen;
+pub mod upload;
 
 use crate::{config::CliConfig, output::OutputFormat};
 use clap::Subcommand;
@@ -87,10 +88,24 @@ pub enum Commands {
 
 impl Commands {
     /// Execute the subcommand. All variants are stubs pending full implementation.
-    pub async fn execute(&self, _config: &CliConfig, _format: &OutputFormat) -> anyhow::Result<()> {
+    pub async fn execute(&self, config: &CliConfig, format: &OutputFormat) -> anyhow::Result<()> {
         match self {
-            Commands::Upload { .. } => {
-                println!("not yet implemented: upload");
+            Commands::Upload {
+                file,
+                uid,
+                title,
+                tags,
+                collection,
+                ttl,
+            } => {
+                let opts = upload::UploadOptions {
+                    uid: uid.as_deref(),
+                    title: title.as_deref(),
+                    tags: tags.as_deref(),
+                    collection: collection.as_deref(),
+                    ttl: *ttl,
+                };
+                upload::execute(file, &opts, config, format).await?;
             }
             Commands::List { .. } => {
                 println!("not yet implemented: list");
@@ -99,7 +114,7 @@ impl Commands {
                 println!("not yet implemented: delete");
             }
             Commands::Keygen { force } => {
-                keygen::execute(*force, _format).await?;
+                keygen::execute(*force, format).await?;
             }
             Commands::Admin { action } => match action {
                 AdminAction::Add { .. } => {
