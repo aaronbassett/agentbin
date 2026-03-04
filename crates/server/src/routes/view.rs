@@ -18,7 +18,7 @@ use crate::{
     templates::{PlainTemplate, RenderedTemplate},
 };
 
-const CSP: &str = "default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; \
+const CSP: &str = "default-src 'self' 'unsafe-inline'; script-src 'self'; \
                    style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; \
                    frame-ancestors 'none'";
 
