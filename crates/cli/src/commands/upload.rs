@@ -8,9 +8,17 @@ const MAX_FILE_SIZE: usize = 1024 * 1024; // 1 MB
 pub struct UploadOptions<'a> {
     pub uid: Option<&'a str>,
     pub title: Option<&'a str>,
-    pub tags: Option<&'a str>,
+    pub description: Option<&'a str>,
+    pub tags: &'a [String],
+    pub agent_model: Option<&'a str>,
+    pub agent_provider: Option<&'a str>,
+    pub agent_tool: Option<&'a str>,
+    pub trigger: Option<&'a str>,
+    /// Each entry is a `KEY=VALUE` string.
+    pub meta: &'a [String],
     pub collection: Option<&'a str>,
-    pub ttl: Option<u64>,
+    /// Expiry in days from now.
+    pub expiry: Option<u64>,
 }
 
 /// Execute the upload command.
@@ -58,18 +66,14 @@ pub async fn execute(
         ),
     };
 
+    // Build a metadata JSON string from the provided options.
+    let metadata_json = build_metadata_json(opts);
+
     // Build the raw multipart body so we can sign the exact bytes that will
     // be sent — the server's auth middleware signs the buffered request body.
     let boundary = generate_boundary();
-    let body_bytes = build_multipart_body(
-        &boundary,
-        filename,
-        &file_bytes,
-        opts.title,
-        opts.tags,
-        opts.collection,
-        opts.ttl,
-    );
+    let body_bytes =
+        build_multipart_body(&boundary, filename, &file_bytes, metadata_json.as_deref());
 
     // Sign: METHOD + path + SHA-256 of body bytes.
     let signed = crate::signing::sign_http_request(&private_key, "POST", &api_path, &body_bytes)?;
@@ -138,6 +142,99 @@ pub async fn execute(
     Ok(())
 }
 
+/// Build a JSON metadata string from upload options.
+///
+/// Returns `None` when no metadata fields were provided so that the multipart
+/// body omits the optional `metadata` part entirely.
+fn build_metadata_json(opts: &UploadOptions<'_>) -> Option<String> {
+    let mut obj = serde_json::Map::new();
+
+    if let Some(title) = opts.title {
+        obj.insert(
+            "title".to_string(),
+            serde_json::Value::String(title.to_string()),
+        );
+    }
+    if let Some(desc) = opts.description {
+        obj.insert(
+            "description".to_string(),
+            serde_json::Value::String(desc.to_string()),
+        );
+    }
+    if !opts.tags.is_empty() {
+        obj.insert(
+            "tags".to_string(),
+            serde_json::Value::Array(
+                opts.tags
+                    .iter()
+                    .map(|t| serde_json::Value::String(t.clone()))
+                    .collect(),
+            ),
+        );
+    }
+    if let Some(trigger) = opts.trigger {
+        obj.insert(
+            "trigger".to_string(),
+            serde_json::Value::String(trigger.to_string()),
+        );
+    }
+
+    // Agent sub-object — only included when at least one agent field is set.
+    let mut agent = serde_json::Map::new();
+    if let Some(model) = opts.agent_model {
+        agent.insert(
+            "model".to_string(),
+            serde_json::Value::String(model.to_string()),
+        );
+    }
+    if let Some(provider) = opts.agent_provider {
+        agent.insert(
+            "provider".to_string(),
+            serde_json::Value::String(provider.to_string()),
+        );
+    }
+    if let Some(tool) = opts.agent_tool {
+        agent.insert(
+            "tool".to_string(),
+            serde_json::Value::String(tool.to_string()),
+        );
+    }
+    if !agent.is_empty() {
+        obj.insert("agent".to_string(), serde_json::Value::Object(agent));
+    }
+
+    // Custom KEY=VALUE pairs.
+    let mut custom = serde_json::Map::new();
+    for kv in opts.meta {
+        if let Some((k, v)) = kv.split_once('=') {
+            custom.insert(k.to_string(), serde_json::Value::String(v.to_string()));
+        }
+    }
+    if !custom.is_empty() {
+        obj.insert("custom".to_string(), serde_json::Value::Object(custom));
+    }
+
+    // Upload-level fields interpreted by the server outside of `Metadata`.
+    if let Some(collection) = opts.collection {
+        obj.insert(
+            "collection".to_string(),
+            serde_json::Value::String(collection.to_string()),
+        );
+    }
+    if let Some(expiry) = opts.expiry {
+        obj.insert(
+            "expiry".to_string(),
+            serde_json::Value::Number(serde_json::Number::from(expiry)),
+        );
+    }
+
+    if obj.is_empty() {
+        None
+    } else {
+        Some(serde_json::Value::Object(obj).to_string())
+    }
+}
+
 /// Generate a random multipart boundary string.
 fn generate_boundary() -> String {
     let mut bytes = [0u8; 16];
@@ -154,10 +251,7 @@ fn build_multipart_body(
     boundary: &str,
     filename: &str,
     file_bytes: &[u8],
-    title: Option<&str>,
-    tags: Option<&str>,
-    collection: Option<&str>,
-    ttl: Option<u64>,
+    metadata_json: Option<&str>,
 ) -> Vec<u8> {
     let mut body: Vec<u8> = Vec::new();
 
@@ -171,14 +265,9 @@ fn build_multipart_body(
     body.extend_from_slice(file_bytes);
     body.extend_from_slice(b"\r\n");
 
-    // Optional metadata text fields.
-    for (name, value) in [("title", title), ("tags", tags), ("collection", collection)] {
-        if let Some(v) = value {
-            append_text_part(&mut body, boundary, name, v);
-        }
-    }
-    if let Some(ttl_val) = ttl {
-        append_text_part(&mut body, boundary, "ttl", &ttl_val.to_string());
+    // Optional metadata JSON field.
+    if let Some(json) = metadata_json {
+        append_text_part(&mut body, boundary, "metadata", json);
     }
 
     // Closing delimiter.

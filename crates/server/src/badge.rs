@@ -1,5 +1,3 @@
-#![allow(dead_code)] // functions consumed by view route once implemented
-
 use agentbin_core::metadata::VersionMeta;
 use serde_json::{json, Value};
 

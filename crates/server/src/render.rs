@@ -5,7 +5,6 @@ use std::path::Path;
 use agentbin_core::{highlight_code, render_markdown, FileType};
 
 /// The result of rendering document content for display.
-#[allow(dead_code)] // consumed by view route once implemented
 pub enum RenderResult {
     /// HTML passthrough — serve uploaded HTML directly (badge injection handled by caller).
     HtmlPassthrough(String),
@@ -22,7 +21,6 @@ pub enum RenderResult {
 /// - [`FileType::Markdown`] — converted to HTML via comrak
 /// - Structured text types — syntax-highlighted via syntect
 /// - [`FileType::PlainText`] — returned as-is for plain display
-#[allow(dead_code)] // called by view route once implemented
 pub fn render_content(
     content: &str,
     file_type: &FileType,

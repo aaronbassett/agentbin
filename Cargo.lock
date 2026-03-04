@@ -18,6 +18,7 @@ dependencies = [
  "chrono",
  "clap",
  "ed25519-dalek",
+ "rand",
  "reqwest",
  "serde",
  "serde_json",
