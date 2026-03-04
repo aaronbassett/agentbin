@@ -51,7 +51,7 @@ pub fn apply_auth_headers(
     signed: &SignedRequest,
 ) -> reqwest::RequestBuilder {
     builder
-        .header("X-Public-Key", &signed.public_key)
-        .header("X-Signature", &signed.signature)
-        .header("X-Timestamp", signed.timestamp.to_string())
+        .header("X-AgentBin-PublicKey", &signed.public_key)
+        .header("X-AgentBin-Signature", &signed.signature)
+        .header("X-AgentBin-Timestamp", signed.timestamp.to_string())
 }

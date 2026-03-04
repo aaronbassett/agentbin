@@ -87,11 +87,13 @@ pub async fn auth_middleware(
 
     // Buffer the request body so it can be included in signature verification
     // and then replayed to the downstream handler.
+    // Cap at 50 MiB to prevent memory exhaustion from oversized request bodies.
+    const MAX_BODY_BYTES: usize = 50 * 1024 * 1024;
     let (parts, body) = req.into_parts();
-    let body_bytes = axum::body::to_bytes(body, usize::MAX).await.map_err(|_| {
+    let body_bytes = axum::body::to_bytes(body, MAX_BODY_BYTES).await.map_err(|_| {
         (
             StatusCode::BAD_REQUEST,
-            Json(json!({ "error": "body_error", "message": "Failed to read request body" })),
+            Json(json!({ "error": "body_error", "message": "Request body too large or unreadable" })),
         )
     })?;
 

@@ -84,7 +84,10 @@ pub fn verify_signature(
 /// Returns `Err(CoreError::AuthError)` if the timestamp is outside the window.
 pub fn validate_timestamp(request_timestamp: i64) -> Result<(), CoreError> {
     let now = chrono::Utc::now().timestamp();
-    let diff = (now - request_timestamp).abs();
+    // Use i128 arithmetic to avoid overflow when `request_timestamp` is near
+    // i64::MIN — wrapping subtraction in release mode could otherwise produce a
+    // small positive diff, silently bypassing replay detection.
+    let diff = (now as i128 - request_timestamp as i128).unsigned_abs();
 
     if diff > 300 {
         return Err(CoreError::AuthError(
