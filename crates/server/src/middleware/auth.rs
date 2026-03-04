@@ -1,6 +1,6 @@
 use axum::{
     body::Body,
-    extract::{Request, State},
+    extract::{OriginalUri, Request, State},
     http::StatusCode,
     middleware::Next,
     response::{Json, Response},
@@ -98,8 +98,15 @@ pub async fn auth_middleware(
     })?;
 
     let method = parts.method.as_str();
-    let path = parts.uri.path();
-    let payload = construct_signing_payload(method, path, timestamp, &body_bytes);
+    // Use OriginalUri to get the full path before Axum's `nest()` strips
+    // the prefix (e.g. `/api`). The CLI signs the full path, so we must
+    // verify against the same value.
+    let path = parts
+        .extensions
+        .get::<OriginalUri>()
+        .map(|uri| uri.path().to_owned())
+        .unwrap_or_else(|| parts.uri.path().to_owned());
+    let payload = construct_signing_payload(method, &path, timestamp, &body_bytes);
 
     verify_signature(&public_key, &payload, &signature)
         .map_err(|e| unauthorized("invalid_signature", &e.to_string()))?;
