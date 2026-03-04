@@ -38,7 +38,9 @@ fn view_error(status: StatusCode, code: &str, message: &str) -> (StatusCode, Jso
 }
 
 fn is_not_found(e: &CoreError) -> bool {
-    matches!(e, CoreError::IoError(io_err) if io_err.kind() == std::io::ErrorKind::NotFound)
+    matches!(e,
+        CoreError::IoError(io_err) if io_err.kind() == std::io::ErrorKind::NotFound
+    ) || matches!(e, CoreError::ValidationError(_))
 }
 
 fn build_html_response(html: String) -> ViewResponse {

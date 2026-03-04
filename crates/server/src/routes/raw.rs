@@ -28,7 +28,9 @@ fn raw_error(status: StatusCode, code: &str, message: &str) -> (StatusCode, Json
 }
 
 fn is_not_found(e: &CoreError) -> bool {
-    matches!(e, CoreError::IoError(io_err) if io_err.kind() == std::io::ErrorKind::NotFound)
+    matches!(e,
+        CoreError::IoError(io_err) if io_err.kind() == std::io::ErrorKind::NotFound
+    ) || matches!(e, CoreError::ValidationError(_))
 }
 
 /// Shared raw-content response builder.
