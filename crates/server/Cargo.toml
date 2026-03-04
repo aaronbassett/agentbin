@@ -1,6 +1,6 @@
 [package]
 name = "agentbin-server"
-version = "0.1.0"
+version = "0.1.1"
 description = "Web server for the agentbin file sharing service"
 edition.workspace = true
 license.workspace = true
