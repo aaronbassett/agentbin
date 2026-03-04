@@ -21,7 +21,7 @@ use crate::{
 };
 
 /// Embedded badge WebComponent script served at `/_static/badge.js`.
-const BADGE_JS: &str = include_str!("../../../../static/badge.js");
+const BADGE_JS: &str = include_str!("../../static/badge.js");
 
 async fn serve_badge_js() -> Response<Body> {
     match Response::builder()

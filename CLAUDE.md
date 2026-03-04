@@ -80,8 +80,8 @@ agentbin/
 │           ├── routes/ (upload, view, raw, manage, admin, collection, health)
 │           ├── middleware/ (auth, request_id)
 │           └── templates/ (rendered.html, plain.html, collection.html, error.html)
-├── static/
-│   └── badge.js            # Info badge WebComponent
+│       └── static/
+│           └── badge.js        # Info badge WebComponent
 ├── .github/workflows/
 │   ├── ci.yml              # Build, test, clippy, fmt
 │   ├── release-plz.yml     # Version bumps + crates.io publish
@@ -90,7 +90,5 @@ agentbin/
 ├── dist-workspace.toml     # cargo-dist config
 ├── cliff.toml              # Changelog config
 ├── Dockerfile              # Multi-stage build for fly.io
-├── fly.toml                # fly.io deployment config
-├── specs/                  # SDD feature specs
-└── .sdd/                   # SDD artifacts
+└── fly.toml                # fly.io deployment config
 ```
