@@ -1,9 +1,11 @@
 [package]
 name = "agentbin-core"
 version = "0.1.0"
+description = "Shared domain logic for the agentbin file sharing service"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+homepage.workspace = true
 
 [dependencies]
 thiserror = { workspace = true }

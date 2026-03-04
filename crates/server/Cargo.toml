@@ -1,9 +1,11 @@
 [package]
 name = "agentbin-server"
 version = "0.1.0"
+description = "Web server for the agentbin file sharing service"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+homepage.workspace = true
 
 [dependencies]
 axum = { workspace = true }
