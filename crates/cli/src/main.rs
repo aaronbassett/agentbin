@@ -1,5 +1,4 @@
 #![deny(unsafe_code)]
-// Skeleton modules — infrastructure will be fully used once commands are implemented.
 #![allow(dead_code)]
 
 mod commands;
@@ -29,8 +28,35 @@ struct Cli {
     command: commands::Commands,
 }
 
+/// Map an error to a CLI exit code per the spec:
+/// 0 = success, 1 = general, 2 = auth, 3 = not-found, 4 = validation, 5 = connection
+fn exit_code_for_error(err: &anyhow::Error) -> i32 {
+    let msg = err.to_string().to_lowercase();
+
+    if msg.contains("failed to connect")
+        || msg.contains("connection refused")
+        || msg.contains("dns error")
+    {
+        5 // connection
+    } else if msg.contains("status: 401")
+        || msg.contains("status: 403")
+        || msg.contains("key") && msg.contains("not found")
+    {
+        2 // auth
+    } else if msg.contains("status: 404") || msg.contains("not found") {
+        3 // not-found
+    } else if msg.contains("status: 400")
+        || msg.contains("status: 422")
+        || msg.contains("validation")
+    {
+        4 // validation
+    } else {
+        1 // general
+    }
+}
+
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() {
     let cli = Cli::parse();
     let config = config::CliConfig::load(cli.server_url.as_deref(), cli.key_file.as_deref());
     let format = if cli.json {
@@ -38,5 +64,9 @@ async fn main() -> anyhow::Result<()> {
     } else {
         OutputFormat::Human
     };
-    cli.command.execute(&config, &format).await
+
+    if let Err(e) = cli.command.execute(&config, &format).await {
+        eprintln!("{}", output::format_error(&format, &e.to_string()));
+        std::process::exit(exit_code_for_error(&e));
+    }
 }

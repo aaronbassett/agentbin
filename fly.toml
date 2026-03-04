@@ -1,0 +1,25 @@
+app = "agentbin"
+primary_region = "iad"
+
+[build]
+
+[env]
+  AGENTBIN_STORAGE_PATH = "/data"
+  AGENTBIN_LOG_FORMAT = "json"
+  AGENTBIN_LISTEN_ADDR = "0.0.0.0:8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 250
+    soft_limit = 200
+
+[mounts]
+  source = "agentbin_data"
+  destination = "/data"
