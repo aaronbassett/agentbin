@@ -1,4 +1,5 @@
 pub mod health;
+pub mod raw;
 pub mod upload;
 pub mod view;
 
@@ -66,6 +67,9 @@ pub fn create_router(state: AppState) -> Router {
         .route("/health", get(health::health))
         .route("/_static/badge.js", get(serve_badge_js))
         .nest("/api", api_routes)
+        // Public raw routes — no auth required. Must come before the /:uid catch-all.
+        .route("/:uid/raw", get(raw::raw_latest))
+        .route("/:uid/v:version/raw", get(raw::raw_version))
         // Public view routes — no auth required.
         .route("/:uid/v:version", get(view::view_version))
         .route("/:uid", get(view::view_latest))
