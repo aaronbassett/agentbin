@@ -19,8 +19,12 @@ use crate::{
     templates::{CollectionMemberView, CollectionTemplate},
 };
 
-const CSP: &str = "default-src 'self' 'unsafe-inline'; script-src 'self'; \
-                   style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; \
+const CSP: &str = "default-src 'self'; \
+                   script-src 'self' 'unsafe-inline' https:; \
+                   style-src 'self' 'unsafe-inline' https:; \
+                   img-src 'self' data: https:; \
+                   font-src 'self' https:; \
+                   connect-src 'self' https:; \
                    frame-ancestors 'none'";
 
 type HtmlResponse = Result<Response<Body>, (StatusCode, Json<Value>)>;

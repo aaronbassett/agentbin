@@ -18,8 +18,12 @@ use crate::{
     templates::{PlainTemplate, RenderedTemplate},
 };
 
-const CSP: &str = "default-src 'self' 'unsafe-inline'; script-src 'self'; \
-                   style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; \
+const CSP: &str = "default-src 'self'; \
+                   script-src 'self' 'unsafe-inline' https:; \
+                   style-src 'self' 'unsafe-inline' https:; \
+                   img-src 'self' data: https:; \
+                   font-src 'self' https:; \
+                   connect-src 'self' https:; \
                    frame-ancestors 'none'";
 
 type ViewResponse = Result<Response<Body>, (StatusCode, Json<Value>)>;
