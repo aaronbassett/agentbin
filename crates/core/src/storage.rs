@@ -88,6 +88,31 @@ impl FileStorage {
         ))
     }
 
+    pub fn list_all_upload_uids(&self) -> Result<Vec<String>, CoreError> {
+        let uploads_dir = self.uploads_dir();
+        let mut uids = Vec::new();
+
+        let entries = match fs::read_dir(&uploads_dir) {
+            Ok(e) => e,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(uids),
+            Err(e) => return Err(e.into()),
+        };
+
+        for entry in entries {
+            let entry = entry?;
+            if !entry.path().is_dir() {
+                continue;
+            }
+            if entry.path().join("upload.json").exists() {
+                if let Some(name) = entry.file_name().to_str() {
+                    uids.push(name.to_string());
+                }
+            }
+        }
+
+        Ok(uids)
+    }
+
     fn list_version_numbers(&self, uid: &str) -> Result<Vec<u32>, CoreError> {
         let mut versions = Vec::new();
         for entry in fs::read_dir(self.upload_dir(uid))? {

@@ -2,6 +2,7 @@
 
 mod badge;
 mod config;
+mod expiry;
 mod middleware;
 mod render;
 mod routes;
@@ -53,6 +54,12 @@ async fn main() -> anyhow::Result<()> {
         storage: Arc::new(storage),
         base_url: config.base_url.clone(),
     };
+
+    // Spawn the expiry sweeper before the server starts accepting connections.
+    let sweeper_storage = state.storage.clone();
+    tokio::spawn(async move {
+        expiry::run_sweeper(sweeper_storage, config.sweep_interval_secs).await;
+    });
 
     let router = create_router(state);
 

@@ -19,6 +19,8 @@ pub struct ServerConfig {
     pub base_url: String,
     /// Log output format. `AGENTBIN_LOG_FORMAT` (`json` | `pretty`), default `pretty`.
     pub log_format: LogFormat,
+    /// How often to run the expiry sweeper in seconds. `AGENTBIN_SWEEP_INTERVAL`, default `60`.
+    pub sweep_interval_secs: u64,
 }
 
 impl ServerConfig {
@@ -33,6 +35,11 @@ impl ServerConfig {
             _ => LogFormat::Pretty,
         };
 
+        let sweep_interval_secs = env::var("AGENTBIN_SWEEP_INTERVAL")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(60);
+
         Self {
             storage_path: env::var("AGENTBIN_STORAGE_PATH")
                 .unwrap_or_else(|_| "./data".to_string()),
@@ -41,6 +48,7 @@ impl ServerConfig {
             base_url: env::var("AGENTBIN_BASE_URL")
                 .unwrap_or_else(|_| "http://localhost:8080".to_string()),
             log_format,
+            sweep_interval_secs,
         }
     }
 }
