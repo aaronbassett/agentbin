@@ -60,19 +60,19 @@ async fn serve_badge_js() -> Response<Body> {
 pub fn create_router(state: AppState) -> Router {
     // Admin routes — require authentication.
     let admin_routes = Router::new().route("/users", post(admin::add_user)).route(
-        "/users/:username",
+        "/users/{username}",
         put(admin::update_user).delete(admin::remove_user),
     );
 
     // Routes that require authentication.
     let api_routes = Router::new()
         .route("/upload", post(upload::create_upload))
-        .route("/upload/:uid", post(upload::upload_version))
+        .route("/upload/{uid}", post(upload::upload_version))
         .route("/uploads", get(manage::list_uploads))
-        .route("/uploads/:uid/v:version", delete(manage::delete_version))
-        .route("/collections/:name/members", post(collection::add_member))
+        .route("/uploads/{uid}/v{version}", delete(manage::delete_version))
+        .route("/collections/{name}/members", post(collection::add_member))
         .route(
-            "/collections/:name/members/:uid",
+            "/collections/{name}/members/{uid}",
             delete(collection::remove_member),
         )
         .nest("/admin", admin_routes)
@@ -87,13 +87,13 @@ pub fn create_router(state: AppState) -> Router {
         .route("/_static/badge.js", get(serve_badge_js))
         .nest("/api", api_routes)
         // Public collection overview — no auth required.
-        .route("/c/:name", get(collection::view_collection))
-        // Public raw routes — no auth required. Must come before the /:uid catch-all.
-        .route("/:uid/raw", get(raw::raw_latest))
-        .route("/:uid/v:version/raw", get(raw::raw_version))
+        .route("/c/{name}", get(collection::view_collection))
+        // Public raw routes — no auth required. Must come before the /{uid} catch-all.
+        .route("/{uid}/raw", get(raw::raw_latest))
+        .route("/{uid}/v{version}/raw", get(raw::raw_version))
         // Public view routes — no auth required.
-        .route("/:uid/v:version", get(view::view_version))
-        .route("/:uid", get(view::view_latest))
+        .route("/{uid}/v{version}", get(view::view_version))
+        .route("/{uid}", get(view::view_latest))
         // Layers are applied last-in, first-out; request_id runs before TraceLayer.
         .layer(TraceLayer::new_for_http())
         .layer(middleware::from_fn(request_id_middleware))
