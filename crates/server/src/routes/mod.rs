@@ -1,6 +1,11 @@
 pub mod health;
+pub mod upload;
 
-use axum::{middleware, routing::get, Router};
+use axum::{
+    middleware,
+    routing::{get, post},
+    Router,
+};
 use tower_http::trace::TraceLayer;
 
 use crate::{
@@ -12,17 +17,19 @@ use crate::{
 ///
 /// Route structure:
 /// - `GET /health` — unauthenticated health check
-/// - `GET /api/*` — authenticated API routes (Ed25519 auth middleware applied)
+/// - `POST /api/upload` — create a new upload (authenticated)
 ///
 /// Global middleware (outermost first):
 /// 1. `request_id_middleware` — echo or generate `X-Request-Id`
 /// 2. [`TraceLayer`] — HTTP tracing spans
 pub fn create_router(state: AppState) -> Router {
     // Routes that require authentication.
-    let api_routes = Router::new().route_layer(middleware::from_fn_with_state(
-        state.clone(),
-        auth_middleware,
-    ));
+    let api_routes = Router::new()
+        .route("/upload", post(upload::create_upload))
+        .route_layer(middleware::from_fn_with_state(
+            state.clone(),
+            auth_middleware,
+        ));
 
     Router::new()
         .route("/health", get(health::health))
