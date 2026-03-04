@@ -2,7 +2,7 @@ use anyhow::Context;
 use serde::Deserialize;
 use std::fs;
 
-const DEFAULT_SERVER_URL: &str = "https://agentbin.dev";
+const DEFAULT_SERVER_URL: &str = "https://agentbin.fly.dev";
 const DEFAULT_KEY_FILE: &str = "~/.config/agentbin/key.pem";
 const CONFIG_FILE_PATH: &str = "~/.config/agentbin/config.json";
 
