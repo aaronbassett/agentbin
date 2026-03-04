@@ -10,7 +10,7 @@ use axum::{
 use serde::Deserialize;
 use serde_json::{json, Value};
 
-use agentbin_core::CoreError;
+use agentbin_core::{uid_with_slug, CoreError};
 
 use crate::{
     middleware::auth::AuthenticatedUser,
@@ -93,7 +93,11 @@ pub async fn view_collection(
             continue;
         };
 
-        let url = format!("{}/{}", state.base_url, uid);
+        let url = format!(
+            "{}/{}",
+            state.base_url,
+            uid_with_slug(uid, record.slug.as_deref())
+        );
         let added_at = member.added_at.format("%Y-%m-%d %H:%M UTC").to_string();
 
         member_entries.push((

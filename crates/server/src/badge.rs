@@ -6,9 +6,15 @@ use serde_json::{json, Value};
 /// Returns a `<script>` tag pointing to `/_static/badge.js` followed by an
 /// `<agentbin-badge>` custom element whose `data-meta` attribute carries a
 /// JSON object describing the upload.
-pub fn generate_badge_html(meta: &VersionMeta, base_url: &str, uid: &str) -> String {
-    let url = format!("{base_url}/{uid}");
-    let raw_url = format!("{base_url}/{uid}/raw");
+pub fn generate_badge_html(
+    meta: &VersionMeta,
+    base_url: &str,
+    uid: &str,
+    slug: Option<&str>,
+) -> String {
+    let slugged = agentbin_core::uid_with_slug(uid, slug);
+    let url = format!("{base_url}/{slugged}");
+    let raw_url = format!("{base_url}/{slugged}/raw");
 
     let mut obj = json!({
         "uid": uid,
@@ -134,7 +140,7 @@ mod tests {
 
     #[test]
     fn badge_html_contains_script_and_element() {
-        let html = generate_badge_html(&make_meta(), "https://example.com", "abc123");
+        let html = generate_badge_html(&make_meta(), "https://example.com", "abc123", None);
         assert!(html.contains("<script src=\"/_static/badge.js\">"));
         assert!(html.contains("<agentbin-badge data-meta='"));
         assert!(html.contains("abc123"));

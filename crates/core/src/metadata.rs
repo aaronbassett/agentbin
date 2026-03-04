@@ -44,6 +44,8 @@ pub struct UploadRecord {
     pub collection: Option<String>,
     pub latest_version: u32,
     pub created_at: DateTime<Utc>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub slug: Option<String>,
 }
 
 /// A single member entry within a collection.

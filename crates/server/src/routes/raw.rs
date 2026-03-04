@@ -8,7 +8,7 @@ use axum::{
 };
 use serde_json::{json, Value};
 
-use agentbin_core::CoreError;
+use agentbin_core::{extract_uid, CoreError};
 
 use crate::state::AppState;
 
@@ -51,7 +51,8 @@ fn serve_raw(content: Vec<u8>) -> RawResponse {
 
 /// `GET /{uid}/raw` — Return the latest version as raw plain text.
 pub async fn raw_latest(State(state): State<AppState>, Path(uid): Path<String>) -> RawResponse {
-    let (_record, _meta, content) = state.storage.get_latest_version(&uid).map_err(|e| {
+    let uid = extract_uid(&uid);
+    let (_record, _meta, content) = state.storage.get_latest_version(uid).map_err(|e| {
         if is_not_found(&e) {
             raw_error(StatusCode::NOT_FOUND, "not_found", "Upload not found")
         } else {
@@ -71,7 +72,8 @@ pub async fn raw_version(
     State(state): State<AppState>,
     Path((uid, version)): Path<(String, u32)>,
 ) -> RawResponse {
-    let (_meta, content) = state.storage.get_version(&uid, version).map_err(|e| {
+    let uid = extract_uid(&uid);
+    let (_meta, content) = state.storage.get_version(uid, version).map_err(|e| {
         if is_not_found(&e) {
             raw_error(StatusCode::NOT_FOUND, "not_found", "Version not found")
         } else {
