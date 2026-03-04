@@ -18,5 +18,13 @@
 # Environment
 .env
 
+# Logs and temp files
+*.log
+*.bak
+*.orig
+
+# Claude Code
+.claude/
+
 # Storage data (local dev)
 /data/
