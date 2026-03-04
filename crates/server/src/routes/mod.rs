@@ -1,4 +1,6 @@
+pub mod admin;
 pub mod health;
+pub mod manage;
 pub mod raw;
 pub mod upload;
 pub mod view;
@@ -7,7 +9,7 @@ use axum::{
     body::Body,
     http::{header, Response, StatusCode},
     middleware,
-    routing::{get, post},
+    routing::{delete, get, post, put},
     Router,
 };
 use tower_http::trace::TraceLayer;
@@ -46,6 +48,7 @@ async fn serve_badge_js() -> Response<Body> {
 /// - `GET  /health`              — unauthenticated health check
 /// - `GET  /_static/badge.js`   — embedded badge WebComponent (no auth)
 /// - `POST /api/upload`          — create a new upload (authenticated)
+/// - `POST /api/upload/:uid`     — add a new version to an existing upload (authenticated)
 /// - `GET  /{uid}`               — view latest version (no auth)
 /// - `GET  /{uid}/v{version}`    — view specific version (no auth)
 ///
@@ -54,9 +57,19 @@ async fn serve_badge_js() -> Response<Body> {
 /// 1. `request_id_middleware` — echo or generate `X-Request-Id`
 /// 2. [`TraceLayer`] — HTTP tracing spans
 pub fn create_router(state: AppState) -> Router {
+    // Admin routes — require authentication.
+    let admin_routes = Router::new().route("/users", post(admin::add_user)).route(
+        "/users/:username",
+        put(admin::update_user).delete(admin::remove_user),
+    );
+
     // Routes that require authentication.
     let api_routes = Router::new()
         .route("/upload", post(upload::create_upload))
+        .route("/upload/:uid", post(upload::upload_version))
+        .route("/uploads", get(manage::list_uploads))
+        .route("/uploads/:uid/v:version", delete(manage::delete_version))
+        .nest("/admin", admin_routes)
         .route_layer(middleware::from_fn_with_state(
             state.clone(),
             auth_middleware,

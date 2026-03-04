@@ -232,6 +232,18 @@ impl FileStorage {
         Ok(serde_json::from_slice(&fs::read(path)?)?)
     }
 
+    pub fn list_version_metas(&self, uid: &str) -> Result<Vec<VersionMeta>, CoreError> {
+        let versions = self.list_version_numbers(uid)?;
+        let mut metas = Vec::with_capacity(versions.len());
+        for v in versions {
+            let version_dir = self.version_dir(uid, v);
+            let meta: VersionMeta =
+                serde_json::from_slice(&fs::read(version_dir.join("meta.json"))?)?;
+            metas.push(meta);
+        }
+        Ok(metas)
+    }
+
     pub fn list_uploads(&self, owner: &str) -> Result<Vec<UploadRecord>, CoreError> {
         let uploads_dir = self.uploads_dir();
         let mut records = Vec::new();
