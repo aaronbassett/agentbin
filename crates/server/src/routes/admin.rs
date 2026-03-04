@@ -46,6 +46,20 @@ pub async fn add_user(
         })?
         .to_string();
 
+    // Validate username format: 1-64 alphanumeric, hyphen, or underscore.
+    if username.is_empty()
+        || username.len() > 64
+        || !username
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    {
+        return Err(error_response(
+            StatusCode::BAD_REQUEST,
+            "invalid_username",
+            "Username must be 1-64 alphanumeric, hyphen, or underscore characters",
+        ));
+    }
+
     let public_key = body
         .get("public_key")
         .and_then(|v| v.as_str())

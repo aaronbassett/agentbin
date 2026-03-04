@@ -100,8 +100,9 @@ pub async fn execute(
 
     if !status.is_success() {
         let message = resp_json
-            .get("message")
-            .or_else(|| resp_json.get("error"))
+            .get("error")
+            .and_then(|e| e.get("message"))
+            .or_else(|| resp_json.get("message"))
             .and_then(|v| v.as_str())
             .unwrap_or("unknown server error");
         anyhow::bail!("Server error {status}: {message}");
