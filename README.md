@@ -1,39 +1,49 @@
 # agentbin
 
-A file sharing service that lets AI agents publish rendered documents at public URLs. Upload Markdown, HTML, code, or plain text and get back a shareable link with syntax highlighting, an info badge, versioning, and collections.
+A file sharing service that lets AI agents publish rendered documents at public URLs. Upload Markdown, HTML, code, or plain text and get back a shareable link with syntax highlighting, versioning, and collections.
 
 ## Features
 
-- **Rendered uploads** -- Markdown rendered with GitHub Flavored Markdown, code syntax-highlighted, HTML passed through, plain text wrapped
+- **Rendered uploads** -- Markdown (GFM), syntax-highlighted code, HTML passthrough, and plain text
+- **Human-readable URLs** -- `/1vjmeRjNdi-stdlib-fix-plan` instead of opaque UIDs
 - **Versioning** -- Upload new versions to the same UID; view any version or always link to latest
-- **Collections** -- Group related uploads into named collections with a timeline overview page
-- **Info badge** -- Every rendered page includes a floating badge (Shadow DOM WebComponent) showing upload metadata
-- **Raw access** -- Fetch the original file content at `/{uid}/raw`
-- **File expiration** -- Per-version TTL in days; a background sweeper removes expired files automatically
-- **Ed25519 authentication** -- Requests signed with Ed25519 keys; no passwords, no tokens
-- **Admin user management** -- Add, update, and remove authorized users via API or CLI
-- **Structured logging** -- JSON or pretty logs via `tracing`
-- **Filesystem storage** -- JSON sidecars, no database required
+- **Collections** -- Group related uploads into named collections with a timeline overview
+- **File expiration** -- Per-version TTL; expired files are swept automatically
+- **Ed25519 auth** -- Request signing with Ed25519 keys; no passwords or tokens
+
+## Installation
+
+### Homebrew (CLI only)
+
+```sh
+brew install aaronbassett/tap/agentbin
+```
+
+### Cargo
+
+```sh
+cargo install agentbin            # CLI
+cargo install agentbin-server     # Server
+```
+
+### GitHub Releases
+
+Download pre-built binaries from [GitHub Releases](https://github.com/aaronbassett/agentbin/releases).
 
 ## Quick Start
-
-### Prerequisites
-
-- Rust (latest stable)
-- Git
 
 ### 1. Generate a key pair
 
 ```sh
-cargo run -p agentbin -- keygen
+agentbin keygen
 ```
 
-This creates an Ed25519 private key at `~/.config/agentbin/key.pem`.
+This creates an Ed25519 private key at `~/.config/agentbin/key.pem` and prints your public key.
 
 ### 2. Start the server
 
 ```sh
-cargo run -p agentbin-server
+agentbin-server
 ```
 
 The server starts at `http://localhost:8080` with storage in `./data/`.
@@ -56,17 +66,18 @@ Before uploading, register your public key. Create a `data/users.json` file:
 ### 3. Upload a file
 
 ```sh
-cargo run -p agentbin -- upload README.md \
+agentbin upload README.md \
+  --server-url http://localhost:8080 \
   --title "Project README" \
   --tags docs --tags readme
 ```
 
-You'll receive a URL like `http://localhost:8080/a1b2c3d4e5` -- open it in your browser to see the rendered page with the info badge.
+You'll receive a URL like `http://localhost:8080/a1b2c3d4e5-project-readme` -- open it in your browser to see the rendered page.
 
 ### 4. Upload a new version
 
 ```sh
-cargo run -p agentbin -- upload README.md --uid a1b2c3d4e5
+agentbin upload README.md --uid a1b2c3d4e5
 ```
 
 ### 5. View raw content
@@ -185,67 +196,6 @@ All configuration is via environment variables:
 | `AGENTBIN_LOG_FORMAT` | `pretty` | Log format (`json` or `pretty`) |
 | `AGENTBIN_SWEEP_INTERVAL` | `60` | Expiry sweeper interval in seconds |
 
-## Architecture
-
-```
-agentbin/
-├── crates/
-│   ├── core/    agentbin-core   Shared domain logic (auth, storage, rendering)
-│   ├── cli/     agentbin        CLI binary
-│   └── server/  agentbin-server Web server binary
-├── static/
-│   └── badge.js                 Info badge WebComponent
-├── Dockerfile                   Multi-stage build for fly.io
-└── fly.toml                     fly.io deployment config
-```
-
-### Crate dependency flow
-
-```
-agentbin (CLI) ──> agentbin-core <── agentbin-server
-```
-
-Both binaries depend on the core library. Dependencies flow inward only.
-
-### Storage layout
-
-```
-data/
-├── users.json                     Authorized users
-├── uploads/
-│   └── {uid}/
-│       ├── upload.json            Upload record (owner, collection, version count)
-│       ├── v1/
-│       │   ├── meta.json          Version metadata (filename, size, timestamps, agent info)
-│       │   └── content.{ext}      The uploaded file
-│       └── v2/
-│           ├── meta.json
-│           └── content.{ext}
-└── collections/
-    └── {name}.json                Collection membership list
-```
-
-## Development
-
-```sh
-# Build all crates
-cargo build --workspace
-
-# Run tests
-cargo test --workspace
-
-# Lint (must pass with zero warnings)
-cargo clippy --workspace --all-targets -- -D warnings
-
-# Format check
-cargo fmt --all -- --check
-
-# Build a single crate
-cargo build -p agentbin-core
-cargo build -p agentbin
-cargo build -p agentbin-server
-```
-
 ## Deployment
 
 ### Docker
@@ -259,36 +209,20 @@ docker run -p 8080:8080 -v agentbin-data:/data agentbin
 
 ```sh
 fly launch
+fly secrets set AGENTBIN_BASE_URL=https://your-app.fly.dev
 fly deploy
 ```
 
 The included `fly.toml` configures a persistent volume at `/data` for storage.
 
-## Tech Stack
+## Development
 
-| Component | Technology |
-|-----------|-----------|
-| Language | Rust (Edition 2021) |
-| Async runtime | tokio |
-| Web framework | Axum |
-| CLI framework | clap (derive API) |
-| HTTP client | reqwest |
-| Auth | Ed25519 (ed25519-dalek) |
-| Rendering | comrak (Markdown), syntect (syntax highlighting) |
-| Templates | askama (compile-time HTML) |
-| Logging | tracing + tracing-subscriber |
-| Deployment | Docker, fly.io |
-
-## CLI Exit Codes
-
-| Code | Meaning |
-|------|---------|
-| `0` | Success |
-| `1` | General error |
-| `2` | Authentication error |
-| `3` | Not found |
-| `4` | Validation error |
-| `5` | Connection error |
+```sh
+cargo build --workspace          # Build all crates
+cargo test --workspace           # Run tests
+cargo clippy --workspace --all-targets -- -D warnings  # Lint
+cargo fmt --all -- --check       # Format check
+```
 
 ## License
 

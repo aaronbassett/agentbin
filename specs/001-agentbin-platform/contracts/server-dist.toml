@@ -1,5 +1,0 @@
-# Per-crate cargo-dist config for server (crates/server/dist.toml)
-# Server gets shell installer only (deployed via Docker to fly.io, not Homebrew)
-
-[dist]
-installers = ["shell"]
