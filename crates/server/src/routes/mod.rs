@@ -1,4 +1,5 @@
 pub mod admin;
+pub mod collection;
 pub mod health;
 pub mod manage;
 pub mod raw;
@@ -69,6 +70,11 @@ pub fn create_router(state: AppState) -> Router {
         .route("/upload/:uid", post(upload::upload_version))
         .route("/uploads", get(manage::list_uploads))
         .route("/uploads/:uid/v:version", delete(manage::delete_version))
+        .route("/collections/:name/members", post(collection::add_member))
+        .route(
+            "/collections/:name/members/:uid",
+            delete(collection::remove_member),
+        )
         .nest("/admin", admin_routes)
         .route_layer(middleware::from_fn_with_state(
             state.clone(),
@@ -80,6 +86,8 @@ pub fn create_router(state: AppState) -> Router {
         .route("/health", get(health::health))
         .route("/_static/badge.js", get(serve_badge_js))
         .nest("/api", api_routes)
+        // Public collection overview — no auth required.
+        .route("/c/:name", get(collection::view_collection))
         // Public raw routes — no auth required. Must come before the /:uid catch-all.
         .route("/:uid/raw", get(raw::raw_latest))
         .route("/:uid/v:version/raw", get(raw::raw_version))

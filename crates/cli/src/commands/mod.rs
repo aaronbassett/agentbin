@@ -1,4 +1,5 @@
 pub mod admin;
+pub mod collection;
 pub mod delete;
 pub mod keygen;
 pub mod list;
@@ -81,6 +82,25 @@ pub struct UploadArgs {
     pub expiry: Option<u64>,
 }
 
+/// Collection sub-actions.
+#[derive(Debug, Subcommand)]
+pub enum CollectionAction {
+    /// Add a file to a collection
+    Add {
+        /// Collection name
+        name: String,
+        /// Upload UID to add
+        uid: String,
+    },
+    /// Remove a file from a collection
+    Remove {
+        /// Collection name
+        name: String,
+        /// Upload UID to remove
+        uid: String,
+    },
+}
+
 /// Top-level CLI subcommands.
 #[derive(Debug, Subcommand)]
 pub enum Commands {
@@ -110,6 +130,11 @@ pub enum Commands {
     Admin {
         #[command(subcommand)]
         action: AdminAction,
+    },
+    /// Manage collection membership
+    Collection {
+        #[command(subcommand)]
+        action: CollectionAction,
     },
 }
 
@@ -172,6 +197,14 @@ impl Commands {
                 }
                 AdminAction::Remove { username } => {
                     admin::execute_remove(username, config, format).await?;
+                }
+            },
+            Commands::Collection { action } => match action {
+                CollectionAction::Add { name, uid } => {
+                    collection::execute_add(name, uid, config, format).await?;
+                }
+                CollectionAction::Remove { name, uid } => {
+                    collection::execute_remove(name, uid, config, format).await?;
                 }
             },
         }
