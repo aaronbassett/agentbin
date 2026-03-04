@@ -16,4 +16,5 @@ pub use metadata::{
     AgentInfo, CollectionMember, CollectionRecord, Metadata, UploadRecord, UserRecord, UsersConfig,
     VersionMeta,
 };
+pub use render::{highlight_code, render_markdown, wrap_plain_text};
 pub use uid::generate_uid;
