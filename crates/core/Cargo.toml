@@ -1,0 +1,19 @@
+[package]
+name = "agentbin-core"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+nanoid = { workspace = true }
+ed25519-dalek = { workspace = true }
+rand = { workspace = true }
+comrak = { workspace = true }
+syntect = { workspace = true }
+sha2 = { workspace = true }
+base64 = { workspace = true }
