@@ -6,7 +6,7 @@ members = ["cargo:."]
 
 [dist]
 # Pin to the cargo-dist version used for init (update with `dist init`)
-cargo-dist-version = "0.28.0"
+cargo-dist-version = "0.31.0"
 
 # CI provider
 ci = "github"
