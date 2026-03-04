@@ -55,3 +55,8 @@ clap = { version = "4", features = ["derive", "env"] }
 
 # Internal
 agentbin-core = { version = "0.1.0", path = "crates/core" }
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
