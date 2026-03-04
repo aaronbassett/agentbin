@@ -5,6 +5,7 @@ pub mod error;
 pub mod filetype;
 pub mod metadata;
 pub mod render;
+pub mod storage;
 pub mod uid;
 
 pub use auth::{
@@ -17,4 +18,5 @@ pub use metadata::{
     VersionMeta,
 };
 pub use render::{highlight_code, render_markdown, wrap_plain_text};
+pub use storage::FileStorage;
 pub use uid::generate_uid;
