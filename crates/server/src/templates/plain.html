@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: monospace; max-width: 900px; margin: 0 auto; padding: 2rem; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    {% if let Some(banner) = &version_banner_html %}
+    {{ banner|safe }}
+    {% endif %}
+    <pre>{{ content }}</pre>
+    {{ badge_html|safe }}
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Rust build artifacts
+/target/
+**/target/
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Environment
+.env
+
+# Storage data (local dev)
+/data/

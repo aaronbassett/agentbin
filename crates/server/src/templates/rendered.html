@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+               max-width: 900px; margin: 0 auto; padding: 2rem; line-height: 1.6; color: #333; }
+        pre { background: #f6f8fa; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+        code { font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace; font-size: 0.9em; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f6f8fa; }
+        img { max-width: 100%; }
+        .version-banner { background: #fff3cd; border: 1px solid #ffc107; padding: 0.75rem 1rem;
+                          border-radius: 6px; margin-bottom: 1.5rem; }
+        .version-banner a { color: #856404; font-weight: bold; }
+    </style>
+</head>
+<body>
+    {% if let Some(banner) = &version_banner_html %}
+    {{ banner|safe }}
+    {% endif %}
+    {{ content|safe }}
+    {{ badge_html|safe }}
+</body>
+</html>

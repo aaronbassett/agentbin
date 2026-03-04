@@ -1,0 +1,44 @@
+# cargo-dist workspace configuration
+# Manages: binary builds, GitHub Releases, installers, Homebrew formula
+
+[workspace]
+members = ["cargo:."]
+
+[dist]
+# Pin to the cargo-dist version used for init (update with `dist init`)
+cargo-dist-version = "0.28.0"
+
+# CI provider
+ci = "github"
+
+# Target platforms for binary builds
+targets = [
+    "aarch64-apple-darwin",
+    "x86_64-apple-darwin",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-unknown-linux-gnu",
+    "x86_64-pc-windows-msvc",
+]
+
+# Default installers (can be overridden per-crate in dist.toml)
+installers = ["shell", "powershell", "homebrew"]
+
+# Homebrew tap repository
+tap = "aaronbassett/homebrew-tap"
+
+# Publish jobs
+publish-jobs = ["homebrew"]
+
+# Run `dist plan` on PRs to catch release config issues early
+pr-run-mode = "plan"
+
+# GitHub Releases
+hosting = "github"
+
+# Install to cargo home by default
+install-path = "CARGO_HOME"
+
+# ARM Linux cross-compilation (no native arm64 GitHub runners)
+[dist.github-custom-runners.aarch64-unknown-linux-gnu.container]
+image = "quay.io/pypa/manylinux_2_28_x86_64"
+host = "x86_64-unknown-linux-musl"

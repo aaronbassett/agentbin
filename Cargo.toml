@@ -1,0 +1,56 @@
+[workspace]
+members = ["crates/core", "crates/cli", "crates/server"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/aaronbassett/agentbin"
+
+[workspace.dependencies]
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# UID generation
+nanoid = "0.4"
+
+# Cryptography
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+rand = "0.8"
+sha2 = "0.10"
+base64 = "0.22"
+
+# Rendering
+comrak = "0.36"
+syntect = "5"
+
+# Web framework
+axum = { version = "0.8", features = ["multipart"] }
+tower-http = { version = "0.6", features = ["trace", "request-id", "util", "set-header"] }
+
+# HTML templates
+askama = "0.13"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# HTTP client
+reqwest = { version = "0.12", features = ["multipart", "json"] }
+
+# CLI
+clap = { version = "4", features = ["derive", "env"] }
+
+# Internal
+agentbin-core = { path = "crates/core" }

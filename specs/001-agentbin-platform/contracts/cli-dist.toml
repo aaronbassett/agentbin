@@ -1,0 +1,5 @@
+# Per-crate cargo-dist config for CLI (crates/cli/dist.toml)
+# CLI gets all installers: shell, powershell, and homebrew
+
+[dist]
+installers = ["shell", "powershell", "homebrew"]
