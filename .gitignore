@@ -25,6 +25,7 @@
 
 # Claude Code
 .claude/
+CLAUDE.md
 
 # Storage data (local dev)
 /data/
